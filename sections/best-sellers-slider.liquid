@@ -1,0 +1,146 @@
+{% comment %}
+  BESTSELLER SLIDER USING SWIPE JS
+{% endcomment %}
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer="defer"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" media="print" onload="this.media='all'" />
+
+{{ 'section-best-sellers-slider.css' | asset_url | stylesheet_tag }}
+{{ 'quick-add.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+
+<script>
+    window.sliderConfig = {
+        autoplayTime: {{ section.settings.autoplay_time }},
+        stopAutoplay: {{ section.settings.stop_autoplay }}
+    };
+</script>
+{{ 'section-best-sellers-slider.js' | asset_url | script_tag }}
+
+{% assign viewed_product = product %}
+{% assign viewed_product_collections = viewed_product.collections %}
+{% assign counter = 1 %}
+{% assign max_products = section.settings.products_to_show %}
+
+{% if viewed_product_collections.size > 0 %}
+    <div class="best-sellers-slider">
+        <div class="best-sellers-slider__container best-sellers-slider__container--page-width">
+
+            <div class="best-sellers-slider__arrows-nav">
+                <button class="swiper-button-prev best-sellers-slider__button-prev">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0.5" y="0.5" width="63" height="63" rx="31.5" fill="white"/>
+                        <rect x="0.5" y="0.5" width="63" height="63" rx="31.5" stroke="#EDEDED"/>
+                        <path d="M28.75 24.4167L36.3333 32.0001L28.75 39.5834" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 32 32)"/>
+                    </svg>
+                </button>
+                <button class="swiper-button-next best-sellers-slider__button-next">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0.5" y="0.5" width="63" height="63" rx="31.5" fill="white"/>
+                        <rect x="0.5" y="0.5" width="63" height="63" rx="31.5" stroke="#EDEDED"/>
+                        <path d="M28.75 24.4167L36.3333 32.0001L28.75 39.5834" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <h3 class="best-sellers-slider__heading">{{ section.settings.heading }}</h3>
+            <button class="best-sellers-slider__button-see-all">{{ section.settings['button-text'] }}</button>
+
+            <div id="js-best-sellers-slider" class="swiper-container best-sellers-slider__swiper-container">
+                <div class="swiper-wrapper best-sellers-slider__swiper-wrapper">
+                    {% for collection in viewed_product_collections %}
+                        {% assign sorted_products = collection.products | sort: 'total_sales' | reverse %}
+                        {% for product in sorted_products %}
+                            {% if product.id != viewed_product.id %}
+                                <div class="swiper-slide best-sellers-slider__swiper-slide">
+                                    {% render 'card-product-slider',
+                                            card_product: product,
+                                            show_secondary_image: false,
+                                            lazy_load: true,
+                                            quick_add: 'standard',
+                                            section_id: "js-best-sellers-slider",
+                                            horizontal_class: false,
+                                            horizontal_quick_add: false
+                                    %}
+                                </div>
+                            {% endif %}
+                            <!-- MAX NUMBER OF SLIDES -->
+                            {% if counter >= max_products %}
+                                {% break %}
+                            {% else %}
+                                {% assign counter = counter | plus: 1 %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+
+                <div class="swiper-pagination"></div>
+
+            </div>
+
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.best-sellers-slider__swiper-slide');
+
+            console.log('slides', slides);
+
+            slides.forEach(function(slide) {
+                slide.addEventListener('mouseenter', function() {
+                    slide.classList.add('best-sellers-slider__swiper-slide--active');
+                });
+
+                slide.addEventListener('mouseleave', function() {
+                    slide.classList.remove('best-sellers-slider__swiper-slide--active');
+                });
+            });
+        });
+    </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Best sellers slider",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Enter slider heading here"
+    },
+    {
+      "type": "text",
+      "id": "button-text",
+      "label": "Enter button text here"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_time",
+      "label": "Autoplay time",
+      "min": 2,
+      "max": 20,
+      "step": 1,
+      "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "stop_autoplay",
+      "label": "Stop autoplay",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "products_to_show",
+      "label": "Number of products to show",
+      "default": 15
+    }
+  ],
+  "presets": [
+    {
+      "name": "best selling slider",
+      "category": "custom"
+    }
+  ]
+}
+{% endschema %}
